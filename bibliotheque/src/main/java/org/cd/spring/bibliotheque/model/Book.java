@@ -11,9 +11,8 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "books")
-public class Book {
-
+@Table(name = "livres")
+public class Livre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,7 +25,5 @@ public class Book {
     private Date datePublication;
 
     private int nombreDisponible;
-
-
 
 }

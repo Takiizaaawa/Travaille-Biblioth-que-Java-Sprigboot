@@ -6,7 +6,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.cd.spring.bibliotheque.service.JwtService;
-import org.cd.spring.bibliotheque.service.UserService;
+import org.cd.spring.bibliotheque.service.ServiceUtilisateur;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,27 +19,32 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtService jwtService;
-    private final UserService userService;
+public class FiltreAuthentificationJwt extends OncePerRequestFilter {
+    private final JwtService serviceJwt;
+    private final ServiceUtilisateur serviceUtilisateur;
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
+        final String enteteAuth = request.getHeader("Authorization");
         final String jwt;
-        final String userEmail;
-        if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader, "Bearer ")) {
+        final String emailUtilisateur;
+
+        if (StringUtils.isEmpty(enteteAuth) || !StringUtils.startsWith(enteteAuth, "Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
-        jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUserName(jwt);
-        if (StringUtils.isNotEmpty(userEmail)
+
+        jwt = enteteAuth.substring(7);
+        emailUtilisateur = serviceJwt.extraireNomUtilisateur(jwt);
+
+        if (StringUtils.isNotEmpty(emailUtilisateur)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService.userDetailsService()
-                    .loadUserByUsername(userEmail);
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            UserDetails userDetails = serviceUtilisateur.serviceDetailsUtilisateur()
+                    .loadUserByUsername(emailUtilisateur);
+
+            if (serviceJwt.estTokenValide(jwt, userDetails)) {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
@@ -48,6 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.setContext(context);
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }

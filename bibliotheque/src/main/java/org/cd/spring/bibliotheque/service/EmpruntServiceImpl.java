@@ -8,21 +8,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @Service
-public class EmpruntServiceImpl implements EmpruntService{
-    private UserService userService;
-    private JwtService jwtService;
-    private EmpruntRepository empruntRepository;
+public class GestionEmprunt implements ServiceEmprunt {
+    private UserService serviceUtilisateur;
+    private JwtService serviceJwt;
+    private EmpruntRepository repositoryEmprunt;
+
     @Override
-    public List<Emprunt> getEmpruntByUser(User user) {
-        return empruntRepository.findByUser(user);
+    public List<Emprunt> recupererEmpruntsParUtilisateur(User utilisateur) {
+        return repositoryEmprunt.findByUser(utilisateur);
     }
 
     @Override
-    public Emprunt empruntBook(User user, Book book) {
-        Emprunt emprunt = new Emprunt();
-        emprunt.setBook(book);
-        emprunt.setUser((User) SecurityContextHolder.getContext().getAuthentication().getDetails());
-        return empruntRepository.save(emprunt);
+    public Emprunt realiserEmpruntLivre(User utilisateur, Book livre) {
+        Emprunt nouvelEmprunt = new Emprunt();
+        nouvelEmprunt.setBook(livre);
+        nouvelEmprunt.setUser((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        return repositoryEmprunt.save(nouvelEmprunt);
     }
 }

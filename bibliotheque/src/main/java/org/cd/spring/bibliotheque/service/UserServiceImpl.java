@@ -13,25 +13,20 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
+public class ImplUserService implements UserService {
+    private final UserRepository userRepo;
 
     @Override
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsService() {
-            @Override
-            public UserDetails loadUserByUsername(String username) {
-                return userRepository.findByEmail(username)
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            }
-        };
+    public UserDetailsService getUserDetailsService() {
+        return username -> userRepo.findByEmail(username)
+                                  .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    public User updateUser(User user) {
-        return userRepository.save(user);
+    public User modifyUser(User user) {
+        return userRepo.save(user);
     }
 
-    public void deleteUser(Long id) {
-        userRepository.deleteById(Math.toIntExact(id));
+    public void removeUser(Long userId) {
+        userRepo.deleteById(Math.toIntExact(userId));
     }
 }

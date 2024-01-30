@@ -6,9 +6,7 @@ import org.cd.spring.bibliotheque.model.User;
 
 import java.util.List;
 
-public interface EmpruntService {
-    List<Emprunt> getEmpruntByUser(User user);
-    Emprunt empruntBook(User user, Book book);
+public interface ServiceEmprunt {
+    List<Emprunt> obtenirEmpruntsParUtilisateur(User utilisateur);
+    Emprunt emprunterLivre(User utilisateur, Book livre);
 }
-
-

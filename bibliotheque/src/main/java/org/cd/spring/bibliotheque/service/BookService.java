@@ -1,6 +1,5 @@
 package org.cd.spring.bibliotheque.service;
 
-
 import org.cd.spring.bibliotheque.model.Book;
 import org.cd.spring.bibliotheque.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,34 +8,39 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class BookService {
+public class ServiceLivres {
 
     @Autowired
     private BookRepository repository;
 
-    public void addBook(Book book){
-        repository.save(book);
-    }
-    public Book findBook(int id){
-        return repository.findById(id).get();
+    public void ajouterLivre(Book livre) {
+        repository.save(livre);
     }
 
-    public Book updateBook(int id, int update){
-        Book book = repository.findById(id).get();
-        book.setNombreDisponible(book.getNombreDisponible()+update);
-        repository.save(book);
-        return book;
+    public Book trouverLivreParId(int id) {
+        return repository.findById(id).orElse(null);
     }
-    public List<Book> findBookByAuteur(String auteur){
+
+    public Book mettreAJourLivre(int id, int quantiteAjoutee) {
+        Book livre = repository.findById(id).orElse(null);
+
+        if (livre != null) {
+            livre.setNombreDisponible(livre.getNombreDisponible() + quantiteAjoutee);
+            repository.save(livre);
+        }
+
+        return livre;
+    }
+
+    public List<Book> trouverLivresParAuteur(String auteur) {
         return repository.findBookByAuteur(auteur);
     }
 
-    public List<Book> findBookByTitre(String titre){
+    public List<Book> trouverLivresParTitre(String titre) {
         return repository.findBookByTitre(titre);
     }
 
-    public List<Book> findAllBooks(){
+    public List<Book> trouverTousLesLivres() {
         return repository.findAll();
     }
-
 }

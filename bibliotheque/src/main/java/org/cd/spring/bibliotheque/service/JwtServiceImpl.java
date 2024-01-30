@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import org.cd.spring.bibliotheque.service.JwtService;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -19,52 +17,52 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @Service
-public class JwtServiceImpl implements JwtService {
+public class ImplementationJwtService implements JwtService {
     @Value("${token.signing.key}")
-    private String jwtSigningKey;
-    @Override
-    public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
+    private String cleSignatureJwt;
 
     @Override
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String obtenirNomUtilisateurDuToken(String token) {
+        return extraireRequeteToken(token, Claims::getSubject);
     }
 
     @Override
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    public String creerToken(UserDetails userDetails) {
+        return construireToken(new HashMap<>(), userDetails);
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolvers) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolvers.apply(claims);
+    @Override
+    public boolean tokenEstValide(String token, UserDetails userDetails) {
+        final String nomUtilisateur = obtenirNomUtilisateurDuToken(token);
+        return (nomUtilisateur.equals(userDetails.getUsername())) && !tokenEstExpire(token);
     }
 
-    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername())
+    private <T> T extraireRequeteToken(String token, Function<Claims, T> resolveurClaims) {
+        final Claims claims = extraireTousLesClaims(token);
+        return resolveurClaims.apply(claims);
+    }
+
+    private String construireToken(Map<String, Object> claimsSupplementaires, UserDetails userDetails) {
+        return Jwts.builder().setClaims(claimsSupplementaires).setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // Expiration après 24 heures
+                .signWith(cleDeSignature(), SignatureAlgorithm.HS256).compact();
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    private boolean tokenEstExpire(String token) {
+        return extraireExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    private Date extraireExpiration(String token) {
+        return extraireRequeteToken(token, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token)
-                .getBody();
+    private Claims extraireTousLesClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(cleDeSignature()).build().parseClaimsJws(token).getBody();
     }
 
-    private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSigningKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private Key cleDeSignature() {
+        byte[] octetsCle = Decoders.BASE64.decode(cleSignatureJwt);
+        return Keys.hmacShaKeyFor(octetsCle);
     }
 }

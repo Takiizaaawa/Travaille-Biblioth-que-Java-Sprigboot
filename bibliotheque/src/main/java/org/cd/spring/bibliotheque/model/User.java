@@ -5,7 +5,6 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.net.PasswordAuthentication;
 import java.util.Collection;
 
 @Data
@@ -13,15 +12,17 @@ import java.util.Collection;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "_user")
-public class User implements UserDetails {
+@Table(name = "utilisateur")
+public class Utilisateur implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String firstName;
-    private String lastName;
+
+    private String prenom;
+    private String nom;
     private String email;
-    private String password;
+    private String motDePasse;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -29,7 +30,7 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String getUsername(){
+    public String getUsername() {
         return email;
     }
 

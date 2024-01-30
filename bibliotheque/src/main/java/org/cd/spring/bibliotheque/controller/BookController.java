@@ -1,14 +1,11 @@
 package org.cd.spring.bibliotheque.controller;
 
-import jakarta.ws.rs.QueryParam;
-import org.cd.spring.bibliotheque.model.Book;
-import org.cd.spring.bibliotheque.model.User;
-import org.cd.spring.bibliotheque.repository.BookRepository;
-import org.cd.spring.bibliotheque.service.BookService;
-import org.cd.spring.bibliotheque.service.EmpruntService;
-import org.cd.spring.bibliotheque.service.UserService;
+import org.cd.spring.bibliotheque.model.Livre;
+import org.cd.spring.bibliotheque.model.Utilisateur;
+import org.cd.spring.bibliotheque.service.ServiceLivre;
+import org.cd.spring.bibliotheque.service.ServiceEmprunt;
+import org.cd.spring.bibliotheque.service.ServiceUtilisateur;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,90 +14,85 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/book")
-public class BookController {
+@RequestMapping("/api/livre")
+public class ControleurLivre {
 
-    private BookService bookService;
-    private UserService userService;
-    private EmpruntService empruntService;
+    private ServiceLivre serviceLivre;
+    private ServiceUtilisateur serviceUtilisateur;
+    private ServiceEmprunt serviceEmprunt;
 
-    public BookController(BookService bookService){
-        this.bookService = bookService;
-        System.out.println("BookController running...");
+    public ControleurLivre(ServiceLivre serviceLivre){
+        this.serviceLivre = serviceLivre;
+        System.out.println("ControleurLivre en cours d'exécution...");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBook(@PathVariable("id") int id){
+    public ResponseEntity<Livre> obtenirLivre(@PathVariable("id") int id){
         try{
-            return new ResponseEntity<>(bookService.findBook(id) ,HttpStatus.FOUND);
-        }catch(Exception e){
+            return new ResponseEntity<>(serviceLivre.trouverLivre(id), HttpStatus.FOUND);
+        } catch(Exception e){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-
     }
 
-
-    @PostMapping("/add")
-    public ResponseEntity<String> addBook(@RequestBody Book book){
-        bookService.addBook(book);
-        return new ResponseEntity<>("The book has been added to the library successfully!",HttpStatus.CREATED);
+    @PostMapping("/ajouter")
+    public ResponseEntity<String> ajouterLivre(@RequestBody Livre livre){
+        serviceLivre.ajouterLivre(livre);
+        return new ResponseEntity<>("Le livre a été ajouté à la bibliothèque avec succès !", HttpStatus.CREATED);
     }
 
     @GetMapping("")
-    public ResponseEntity<List<Book>> getBooks(
+    public ResponseEntity<List<Livre>> obtenirLivres(
             @RequestParam(value="auteur", required = false) String auteur,
             @RequestParam(value="titre", required = false) String titre
     ){
-        List<Book> books;
+        List<Livre> livres;
         try{
             if(auteur != null){
-                books = bookService.findBookByAuteur(auteur);
+                livres = serviceLivre.trouverLivresParAuteur(auteur);
             } else if (titre != null){
-                books = bookService.findBookByTitre(titre);
+                livres = serviceLivre.trouverLivresParTitre(titre);
             } else {
-                books = bookService.findAllBooks();
+                livres = serviceLivre.obtenirTousLesLivres();
             }
         } catch(Exception e){
-           return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
-        if(books.isEmpty()){
-            return new ResponseEntity<>(books, HttpStatus.NOT_FOUND);
+
+        if(livres.isEmpty()){
+            return new ResponseEntity<>(livres, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(books, HttpStatus.FOUND);
+        return new ResponseEntity<>(livres, HttpStatus.FOUND);
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<Book> updateBook(
+    public ResponseEntity<Livre> mettreAJourLivre(
             @PathVariable("id") int id,
             @RequestParam(value="update", required = true) int update
     ){
         try{
-            Book book = bookService.updateBook(id, update);
-            return new ResponseEntity<>(book, HttpStatus.OK);
+            Livre livre = serviceLivre.mettreAJourLivre(id, update);
+            return new ResponseEntity<>(livre, HttpStatus.OK);
         }catch (Exception e){
-            return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
-
     }
 
     @PostMapping("/{id}/emprunt")
-    public ResponseEntity<String> borrowBook(@PathVariable Long id) {
-        // Retrieve the currently authenticated user
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-        // Retrieve the book by ID
-        Book book = bookService.findBook(Math.toIntExact(id));
+    public ResponseEntity<String> emprunterLivre(@PathVariable Long id) {
+        // Récupérer l'utilisateur actuellement authentifié
+        Utilisateur utilisateurActuel = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        // Récupérer le livre par ID
+        Livre livre = serviceLivre.trouverLivre(Math.toIntExact(id));
 
-        // Check if the book is available
-        if (book.getNombreDisponible() > 0) {
-            // Borrow the book
-            empruntService.empruntBook(currentUser, book);
+        // Vérifier si le livre est disponible
+        if (livre.getNombreDisponible() > 0) {
+            // Emprunter le livre
+            serviceEmprunt.emprunterLivre(utilisateurActuel, livre);
 
-            return new ResponseEntity<>("Book borrowed successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Livre emprunté avec succès", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Book not available for borrowing", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Livre non disponible pour emprunt", HttpStatus.BAD_REQUEST);
         }
     }
-
-
-
 }

@@ -1,9 +1,8 @@
 package org.cd.spring.bibliotheque.service;
 
-import org.jvnet.hk2.annotations.Service;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.jvnet.hk2.annotations.Service;
 
-
-public interface UserService {
-    UserDetailsService userDetailsService();
+public interface ServiceUtilisateur {
+    UserDetailsService fournirServiceDetailsUtilisateur();
 }

@@ -3,8 +3,6 @@ package org.cd.spring.bibliotheque.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Getter
 @Setter
 @ToString
@@ -14,13 +12,14 @@ import java.util.List;
 @Table(name = "emprunt")
 public class Emprunt {
 
-
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
-    private User user;
+    private Utilisateur utilisateur;
+
     @ManyToOne
-    private Book book;
+    private Livre livre;
 
 }

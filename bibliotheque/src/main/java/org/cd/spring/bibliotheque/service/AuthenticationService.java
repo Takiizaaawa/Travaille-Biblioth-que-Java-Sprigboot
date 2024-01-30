@@ -1,13 +1,12 @@
 package org.cd.spring.bibliotheque.service;
 
-import org.cd.spring.bibliotheque.dao.request.SignUpRequest;
-import org.cd.spring.bibliotheque.dao.request.SigninRequest;
+import org.cd.spring.bibliotheque.dao.request.InscriptionRequest;
+import org.cd.spring.bibliotheque.dao.request.ConnexionRequest;
 import org.cd.spring.bibliotheque.dao.response.JwtAuthenticationResponse;
 
-import java.io.Serializable;
+public interface ServiceAuthentification extends Serializable {
 
-public interface AuthenticationService {
-    JwtAuthenticationResponse signup(SignUpRequest request);
+    JwtAuthenticationResponse inscription(InscriptionRequest demandeInscription);
 
-    JwtAuthenticationResponse signin(SigninRequest request);
+    JwtAuthenticationResponse connexion(ConnexionRequest demandeConnexion);
 }

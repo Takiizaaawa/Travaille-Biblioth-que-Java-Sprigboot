@@ -1,10 +1,10 @@
 package org.cd.spring.bibliotheque.controller;
 
-import org.cd.spring.bibliotheque.model.Book;
-import org.cd.spring.bibliotheque.model.User;
-import org.cd.spring.bibliotheque.service.BookService;
-import org.cd.spring.bibliotheque.service.EmpruntService;
-import org.cd.spring.bibliotheque.service.UserService;
+import org.cd.spring.bibliotheque.model.Livre;
+import org.cd.spring.bibliotheque.model.Utilisateur;
+import org.cd.spring.bibliotheque.service.ServiceLivre;
+import org.cd.spring.bibliotheque.service.ServiceEmprunt;
+import org.cd.spring.bibliotheque.service.ServiceUtilisateur;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,50 +17,49 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/resource")
+@RequestMapping("/api/v1/ressource")
 @RequiredArgsConstructor
-public class AuthorizationController {
-    @Autowired
-    private BookService bookService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private EmpruntService empruntService;
+public class ControleurAutorisation {
 
+    @Autowired
+    private ServiceLivre serviceLivre;
+    @Autowired
+    private ServiceUtilisateur serviceUtilisateur;
+    @Autowired
+    private ServiceEmprunt serviceEmprunt;
 
     @GetMapping
-    public ResponseEntity<?> sayHello() {
-
-        return new ResponseEntity<>("CONNECTED!!",HttpStatus.OK);
+    public ResponseEntity<?> direBonjour() {
+        return new ResponseEntity<>("CONNECTÉ !!", HttpStatus.OK);
     }
 
-    @GetMapping("/books")
-    public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = bookService.findAllBooks();
-        return new ResponseEntity<>(books, HttpStatus.OK);
+    @GetMapping("/livres")
+    public ResponseEntity<List<Livre>> obtenirTousLesLivres() {
+        List<Livre> livres = serviceLivre.obtenirTousLesLivres();
+        return new ResponseEntity<>(livres, HttpStatus.OK);
     }
 
-    @GetMapping("/books/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
-        Book book = bookService.findBook(Math.toIntExact(id));
-        return new ResponseEntity<>(book, HttpStatus.OK);
+    @GetMapping("/livres/{id}")
+    public ResponseEntity<Livre> obtenirLivreParId(@PathVariable Long id) {
+        Livre livre = serviceLivre.trouverLivre(Math.toIntExact(id));
+        return new ResponseEntity<>(livre, HttpStatus.OK);
     }
 
     @PostMapping("/{id}/emprunt")
-    public ResponseEntity<String> borrowBook(@PathVariable Long id) {
-        // Retrieve the currently authenticated user
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-        // Retrieve the book by ID
-        Book book = bookService.findBook(Math.toIntExact(id));
+    public ResponseEntity<String> emprunterLivre(@PathVariable Long id) {
+        // Récupérer l'utilisateur actuellement authentifié
+        Utilisateur utilisateurActuel = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        // Récupérer le livre par ID
+        Livre livre = serviceLivre.trouverLivre(Math.toIntExact(id));
 
-        // Check if the book is available
-        if (book.getNombreDisponible() > 0) {
-            // Borrow the book
-            empruntService.empruntBook(currentUser, book);
+        // Vérifier si le livre est disponible
+        if (livre.getNombreDisponible() > 0) {
+            // Emprunter le livre
+            serviceEmprunt.emprunterLivre(utilisateurActuel, livre);
 
-            return new ResponseEntity<>("Book borrowed successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Livre emprunté avec succès", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Book not available for borrowing", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Livre non disponible pour emprunt", HttpStatus.BAD_REQUEST);
         }
     }
 }
